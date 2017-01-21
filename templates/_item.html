@@ -1,0 +1,22 @@
+{% if item.priority == 0 %}
+<span class="label label-danger">P0</span>
+{% else %}
+{% if item.priority == 1 %}
+<span class="label label-warning ">P1</span>
+{% else %}
+{% if item.priority == 2 %}
+<span class="label label-info">P2</span>
+{% else %}
+{% if item.priority == 3 %}
+<span class="label label-success">P3</span>
+{% else %}
+{% if item.priority == 4 %}
+<span class="label label-primary">P4</span>
+{% else %}
+<span class="label label-default">P?</span>
+{% endif %}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endif %}
+<span>{{ item.text|safe }}</span>

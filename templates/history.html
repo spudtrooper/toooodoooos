@@ -1,0 +1,31 @@
+{% extends "_base.html" %}
+
+{% block head %}
+<script src="/js/history.js"></script>
+{% endblock %}
+
+{% block title %}
+History
+{% endblock %}
+
+{% block body %}
+<a href="/" class="back">Back</a>
+
+<div id="history">
+  <ul class="list-group">
+    {% for s in stats %}
+    <li>{{ s.date }}</li>
+    <ul class="list-group">
+      {% for lst in s.stat.archived_lists %}
+      <li class="list-group-item list-name">{{ lst.name|safe }}</li>
+      <ul class="list-group">
+        {% for item in lst.done_items %}
+        <li class="list-group-item disabled done">{{ item.text|safe }}</li>
+        {% endfor %}
+      </ul>
+      {% endfor %}
+    </ul>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

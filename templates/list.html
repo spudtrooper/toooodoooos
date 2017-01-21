@@ -1,0 +1,63 @@
+{% extends "_base.html" %}
+
+{% block head %}
+      <script src="/js/list.js"></script>
+      <script>
+        $(window).load(bindFakeLinks);
+      </script>
+{% endblock %}
+
+{% block title %}
+List: <span class="list-title">{{ list.name|escape }}</span>
+{% endblock %}
+
+{% block body %}
+<a href="/" class="back">Back</a>
+
+<h2>Open</h2>
+<div class="list-group">
+  {% for item in open_items %}
+  <a class="list-group-item list-group-item-action"
+     href="#"
+     onclick="markItemDone('{{ item.key }}')">
+    {% include "_item.html" %}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="input-group">
+  <input type="text" class="form-control" placeholder="Item name"
+         id="text_{{ list.key}}">
+  <div class="input-group-btn">
+    <button type="button" class="btn btn-default"
+            onclick="addNewItem('{{ list.key }}')" >
+      New item
+    </button>
+  </div>
+  <select id="priority_{{ list.key}}" class="selectpicker">
+    <option>P0</option>
+    <option>P1</option>
+    <option selected>P2</option>
+    <option>P3</option>
+    <option>P4</option>
+  </select>
+</div>
+
+<h2>Done</h2>
+<div class="list-group">
+  {% for item in done_items %}
+  <a class="list-group-item list-group-item-action done"
+     href="#"
+     onclick="markItemOpen('{{ item.key }}')">
+    {% include "_item.html" %}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="etc-buttons">
+  <button type="submit" class="btn btn-danger" 
+          onclick="deleteList('{{ list.key }}', '{{ list.name }}')" >
+    Delete list
+  </button>
+</div>
+{% endblock %}

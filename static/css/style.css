@@ -1,0 +1,30 @@
+.done {
+  text-decoration: line-through;
+}
+
+.list-name {
+    font-weight: bold;
+}
+
+.list-title {
+    font-style: italic;
+}
+
+/* archive, etc buttons */
+.etc-buttons {
+    margin-top: 20px;
+}
+
+body {
+    padding: 10px;
+}
+
+.fake-link {
+    color: #428bca;
+    text-decoration: none;
+    z-index: 10000;
+}
+
+.fake-link:hover {
+    text-decoration: underline;
+}
