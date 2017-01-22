@@ -14,7 +14,12 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 {% block body %}
 {% include "_sub_menu.html" %}
 
-<h2>Open</h2>
+{% if num_items == 0 %}
+<h2>You got nothing</h2>
+{% endif %}
+
+{% if num_open_items > 0 %}
+<h2>Open ({{ num_open_items }})</h2>
 <div class="block list-group">
   {% for item in open_items %}
   <a class="list-group-item list-group-item-action"
@@ -42,8 +47,10 @@ List: <span class="list-title">{{ list.name|escape }}</span>
     <option>P4</option>
   </select>
 </div>
+{% endif %}
 
-<h2>Done</h2>
+{% if num_done_items > 0 %}
+<h2>Done ({{ num_done_items }})</h2>
 <div class="block list-group">
   {% for item in done_items %}
   <a class="list-group-item list-group-item-action done"
@@ -53,6 +60,8 @@ List: <span class="list-title">{{ list.name|escape }}</span>
   </a>
   {% endfor %}
 </div>
+{% endif %}
+
 
 <div class="block etc-buttons">
     <button type="submit" class="btn btn-warning" 

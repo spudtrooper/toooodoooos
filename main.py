@@ -319,6 +319,9 @@ class ListPageHandler(webapp.RequestHandler):
       'list': list,
       'open_items': sorted_rendered_open_items,
       'done_items': sorted_rendered_done_items,
+      'num_open_items': len(sorted_rendered_open_items),
+      'num_done_items': len(sorted_rendered_done_items),
+      'num_items': len(sorted_rendered_open_items) + len(sorted_rendered_done_items),
     }
     RenderTemplate(self.response, 'list', template_values)
 
