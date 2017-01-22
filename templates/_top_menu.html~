@@ -1,4 +1,0 @@
-<a href="/stats">stats</a>
-| <a href="/all">all</a>
-| <a href="/history">history</a>
-| <a href="{{ logout_link }}">log out</a>
