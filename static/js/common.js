@@ -1,7 +1,7 @@
 function reload_(opt_url) {
   setTimeout(function() {
     document.location = opt_url ? opt_url : String(document.location).replace(/#.*/, '');
-  }, 200);
+  }, 50);
 }
 
 function request(url, method, opt_data, opt_afterUrl) {
