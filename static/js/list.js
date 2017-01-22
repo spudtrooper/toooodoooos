@@ -1,18 +1,3 @@
-function markItemDone(key) {
-  markItem_(key, 'true');
-}
-
-function markItemOpen(key) {
-  markItem_(key, 'false');
-}
-
-function markItem_(key, done) {
-  post('/checklistitem', {
-    key: key,
-    done: done
-  });
-}
-
 function deleteList(listKey, name) {
   var ans = confirm('Are you sure you want to delete "' + name + '"?');
   if (ans) {

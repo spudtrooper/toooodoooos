@@ -203,6 +203,88 @@ class NewListHandler(webapp.RequestHandler):
     list.put()
     self.response.out.write('OK')
 
+# Returns an object of the form
+# {
+#  'list': List,
+#  'open_items': List(TODO)
+#  'done_items': List(TODO)
+# }
+def GetListAndItems(list):
+  open_items = db.GqlQuery(
+    'SELECT * FROM ListItem WHERE list = :1 AND done = false', list)
+  done_items = db.GqlQuery(
+    'SELECT * FROM ListItem WHERE list = :1 AND done = true', list)
+
+  rendered_open_items = []
+  rendered_done_items = []
+  for it in open_items:
+    rendered_open_items.append({
+      'text': helpers.Htmlize(it.text),
+      'key': it.key(),
+      'priority': it.priority
+    })
+  for it in done_items:
+    rendered_done_items.append({
+      'text': helpers.Htmlize(it.text),
+      'key': it.key(),
+      'priority': it.priority,
+      'date': it.date
+    })
+
+  # Sort open items by priority.
+  sorted_rendered_open_items = sorted(rendered_open_items, key=lambda it: it['priority'])
+  
+  # Sort done items by date.
+  sorted_rendered_done_items = sorted(rendered_done_items, key=lambda it: it['date'])
+
+  return {
+    'list': list,
+    'open_items': sorted_rendered_open_items,
+    'done_items': sorted_rendered_done_items,
+  }
+
+class AllPageHandler(webapp.RequestHandler):
+  def get(self):
+    nickname = ''
+    user = users.get_current_user()
+    if user:
+      nickname = user.nickname()
+    else:
+      self.redirect(users.create_login_url(self.request.uri))
+    lists = db.GqlQuery('SELECT * FROM List WHERE author = :1 ORDER BY name', user)
+    list_and_items = []
+    for list in lists:
+      s = GetListAndItems(list)
+      logging.info('done_items: %s', s['done_items'])
+      # TODO(jeff): Refactor
+      open_items = db.GqlQuery(
+        'SELECT * FROM ListItem WHERE list = :1 AND done = false', list)
+      priorities = [0, 0, 0, 0, 0]
+      num_open = 0
+      for it in open_items:
+        num_open += 1
+        priorities[it.priority] = priorities[it.priority] + 1
+      list_properties = {
+        'name': helpers.Htmlize(list.name),
+        'num_open': num_open,
+        'key': list.key(),
+        'num_p0': priorities[0],
+        'num_p1': priorities[1],
+        'num_p2': priorities[2],
+        'num_p3': priorities[3],
+        'num_p4': priorities[4]
+      }
+      s.update(list_properties)
+      list_and_items.append(s)
+
+    template_values = {
+      'is_logged_in': not (not users.get_current_user()),
+      'logout_link': users.create_logout_url('/'),
+      'list_and_items': list_and_items
+    }
+    
+    RenderTemplate(self.response, 'all', template_values)
+
 class ListPageHandler(webapp.RequestHandler):
   def get(self):
     list = db.get(self.request.get('key'))
@@ -348,6 +430,7 @@ class HistoryHandler(webapp.RequestHandler):
 
 app = webapp.WSGIApplication(
   [('/', IndexPageHandler),
+   ('/all', AllPageHandler),
    ('/list', ListPageHandler),
    ('/checklistitem', CheckListItemHandler),
    ('/deletelistitem', DeleteListItemHandler),
