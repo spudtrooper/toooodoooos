@@ -1,10 +1,10 @@
-function reload_(opt_url) {
+function reload_(opt_url, opt_timeout) {
   setTimeout(function() {
     document.location = opt_url ? opt_url : String(document.location).replace(/#.*/, '');
-  }, 50);
+  }, opt_timeout || 50);
 }
 
-function request(url, method, opt_data, opt_afterUrl) {
+function request(url, method, opt_data, opt_afterUrl, opt_timeout) {
   var data = opt_data || {};
   $.ajax({
     url: url,
@@ -13,16 +13,16 @@ function request(url, method, opt_data, opt_afterUrl) {
     context: document.body
   }).done(function(str) {
     console.log('Have response: ' + str);
-    reload_(opt_afterUrl);
+    reload_(opt_afterUrl, opt_timeout);
   });
 }
 
-function get(url, opt_data, opt_afterUrl) {
-  request(url, 'GET', opt_data, opt_afterUrl);
+function get(url, opt_data, opt_afterUrl, opt_timeout) {
+  request(url, 'GET', opt_data, opt_afterUrl, opt_timeout);
 }
 
-function post(url, opt_data, opt_afterUrl) {
-  request(url, 'POST', opt_data, opt_afterUrl);
+function post(url, opt_data, opt_afterUrl, opt_timeout) {
+  request(url, 'POST', opt_data, opt_afterUrl, opt_timeout);
 }
 
 function openSpecialLink(e) {

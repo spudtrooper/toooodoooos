@@ -13,7 +13,19 @@ Lists
 {% include "_top_menu.html" %}
 {% endif %}
 
-<div class="list-group">
+
+<div class="block input-group">
+  <input type="text" class="form-control" 
+         placeholder="List name"
+         id="new-list-name-text">
+  <div class="input-group-btn">
+    <button type="button" class="btn btn-success" onclick="addNewList()">
+      Add list
+    </button>
+  </div>
+</div>
+
+<div class="block list-group">
   {% for s in lists %}
   <a class="list-group-item list-group-item-action justify-content-between" 
      href="/list?key={{ s.key }}">{{ s.name|safe }}
@@ -37,17 +49,6 @@ Lists
     {% endif %}
   </a>
   {% endfor %}
-</div>
-
-<div class="input-group">
-  <input type="text" class="form-control" 
-         placeholder="List name"
-         id="new-list-name-text">
-  <div class="input-group-btn">
-    <button type="button" class="btn btn-default" onclick="addNewList()">
-      New list
-    </button>
-  </div>
 </div>
 
 {% if is_logged_in %}

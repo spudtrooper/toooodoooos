@@ -28,3 +28,7 @@ body {
 .fake-link:hover {
     text-decoration: underline;
 }
+
+.container-fluid > div.block {
+  margin: 10px 0 10px 0;
+}

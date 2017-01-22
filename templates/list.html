@@ -12,10 +12,10 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 {% endblock %}
 
 {% block body %}
-<a href="/" class="back">Back</a>
+{% include "_sub_menu.html" %}
 
 <h2>Open</h2>
-<div class="list-group">
+<div class="block list-group">
   {% for item in open_items %}
   <a class="list-group-item list-group-item-action"
      href="#"
@@ -25,13 +25,13 @@ List: <span class="list-title">{{ list.name|escape }}</span>
   {% endfor %}
 </div>
 
-<div class="input-group">
+<div class="block input-group">
   <input type="text" class="form-control" placeholder="Item name"
          id="text_{{ list.key}}">
   <div class="input-group-btn">
-    <button type="button" class="btn btn-default"
+    <button type="button" class="btn btn-success"
             onclick="addNewItem('{{ list.key }}')" >
-      New item
+      Add
     </button>
   </div>
   <select id="priority_{{ list.key}}" class="selectpicker">
@@ -44,7 +44,7 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 </div>
 
 <h2>Done</h2>
-<div class="list-group">
+<div class="block list-group">
   {% for item in done_items %}
   <a class="list-group-item list-group-item-action done"
      href="#"
@@ -54,7 +54,7 @@ List: <span class="list-title">{{ list.name|escape }}</span>
   {% endfor %}
 </div>
 
-<div class="etc-buttons">
+<div class="block etc-buttons">
     <button type="submit" class="btn btn-warning" 
             onclick="archiveList('{{ list.key }}')" >
       Archive list

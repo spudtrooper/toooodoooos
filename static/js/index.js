@@ -8,7 +8,7 @@ function addNewList() {
     alert('No name');
     return;
   }
-  post('/newlist', {name: name});
+  post('/newlist', {name: name}, undefined, 200);
 }
 
 function deleteList(listKey) {
