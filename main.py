@@ -115,7 +115,7 @@ def ArchiveUser(user):
 # Handlers
 # ----------------------------------------------------------------------
 
-class ArchiveAll(webapp.RequestHandler):
+class ArchiveAllHandler(webapp.RequestHandler):
   def get(self):
     author_counts = {}
     lists = db.GqlQuery('SELECT * FROM List')
@@ -147,7 +147,7 @@ class ArchiveListHandler(webapp.RequestHandler):
     ArchiveList(list)
     self.response.out.write('OK')
 
-class Archive(webapp.RequestHandler):
+class ArchiveHandler(webapp.RequestHandler):
   def post(self):
     user = users.get_current_user()
     if not user:
@@ -155,7 +155,7 @@ class Archive(webapp.RequestHandler):
     ArchiveUser(user)
     self.response.out.write('OK')
 
-class IndexPage(webapp.RequestHandler):
+class IndexPageHandler(webapp.RequestHandler):
   def get(self):
     nickname = ''
     user = users.get_current_user()
@@ -194,7 +194,7 @@ class IndexPage(webapp.RequestHandler):
     
     RenderTemplate(self.response, 'index', template_values)
 
-class NewList(webapp.RequestHandler):
+class NewListHandler(webapp.RequestHandler):
   def post(self):
     name = self.request.get('name')
     logging.info('Adding new list with name[%s]', name)
@@ -203,7 +203,7 @@ class NewList(webapp.RequestHandler):
     list.put()
     self.response.out.write('OK')
 
-class ListPage(webapp.RequestHandler):
+class ListPageHandler(webapp.RequestHandler):
   def get(self):
     list = db.get(self.request.get('key'))
     open_items = db.GqlQuery(
@@ -240,7 +240,7 @@ class ListPage(webapp.RequestHandler):
     }
     RenderTemplate(self.response, 'list', template_values)
 
-class NewListItem(webapp.RequestHandler):
+class NewListItemHandler(webapp.RequestHandler):
   def post(self):
     list = db.get(self.request.get('list_key'))
     text = self.request.get('text')
@@ -255,7 +255,7 @@ class NewListItem(webapp.RequestHandler):
     list.save()
     self.response.out.write('OK')
 
-class CheckListItem(webapp.RequestHandler):
+class CheckListItemHandler(webapp.RequestHandler):
   def post(self):
     item = db.get(self.request.get('key'))
     list = db.get(item.list.key())
@@ -270,7 +270,7 @@ class CheckListItem(webapp.RequestHandler):
 
     self.response.out.write('OK')
 
-class DeleteListItem(webapp.RequestHandler):
+class DeleteListItemHandler(webapp.RequestHandler):
   def post(self):
     item = db.get(self.request.get('key'))
     list = db.get(item.list)
@@ -278,7 +278,7 @@ class DeleteListItem(webapp.RequestHandler):
     item.delete()
     self.response.out.write('OK')
 
-class DeleteList(webapp.RequestHandler):
+class DeleteListHandler(webapp.RequestHandler):
   def post(self):  
     list = db.get(self.request.get('key'))
     items = db.GqlQuery('SELECT * FROM ListItem WHERE list = :1', list)
@@ -286,7 +286,7 @@ class DeleteList(webapp.RequestHandler):
     db.delete(items)
     self.response.out.write('OK')
 
-class History(webapp.RequestHandler):
+class HistoryHandler(webapp.RequestHandler):
   def get(self):
     user = users.get_current_user()
     if not user:
@@ -347,18 +347,18 @@ class History(webapp.RequestHandler):
     RenderTemplate(self.response, 'history', template_values)
 
 app = webapp.WSGIApplication(
-  [('/', IndexPage),
-   ('/list', ListPage),
-   ('/checklistitem', CheckListItem),
-   ('/deletelistitem', DeleteListItem),
-   ('/deletelist', DeleteList),
-   ('/archive', Archive),
+  [('/', IndexPageHandler),
+   ('/list', ListPageHandler),
+   ('/checklistitem', CheckListItemHandler),
+   ('/deletelistitem', DeleteListItemHandler),
+   ('/deletelist', DeleteListHandler),
+   ('/archive', ArchiveHandler),
    ('/archivelist', ArchiveListHandler),
-   ('/history', History),
-   ('/newlist', NewList),
-   ('/newlistitem', NewListItem)
+   ('/history', HistoryHandler),
+   ('/newlist', NewListHandler),
+   ('/newlistitem', NewListItemHandler)
  ], debug=True)
 
 cron = webapp.WSGIApplication(
-  [('/archiveall', ArchiveAll)
+  [('/archiveall', ArchiveAllHandler)
  ], debug=True)
