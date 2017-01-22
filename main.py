@@ -53,60 +53,63 @@ def RenderTemplate(response, name, template_values):
   path = os.path.join(os.path.dirname(__file__), 'templates/%s.html' % name)
   response.out.write(template.render(path, template_values))
 
+def ArchiveList(lst):
+  logging.info('Archiving list[%s]', lst)
+  today = datetime.now().date()
+  # Get or create a new ArchivedList
+  archived_lists = db.GqlQuery(
+    'SELECT * FROM ArchivedList WHERE archived_list = :1 AND date = :2', 
+    lst, today)
+  if archived_lists and any(archived_lists):
+    logging.info('Using existing archived list for list with name[%s] and key[%s]',
+                 lst.name, lst.key())
+    archived_list = archived_lists[0]
+  else:
+    logging.info('Creating a new archived list for list with name[%s] and key[%s]',
+                 lst.name, lst.key())
+    archived_list = ArchivedList(author=lst.author,
+                                 archived_list=lst,
+                                 name=lst.name,
+                                 date=today,
+                                list_date=lst.date)
+    archived_list.put()
+  items = db.GqlQuery('SELECT * FROM ListItem WHERE list = :1', lst)
+  for it in items:
+    # Delete all the existing archived items for this item.
+    archived_list_items = db.GqlQuery(
+      ('SELECT * FROM ArchivedListItem WHERE list_item = :1 AND '
+       'archived_list = :2 AND date = :3'), 
+      it, archived_list, today)
+    if archived_list_items and any(archived_list_items):
+      for archived_list_item in archived_list_items:
+        logging.info('Found an item already key[%s] text[%s], will delete it',
+                    it.key(), it.text)
+        archived_list_item.delete()
+    new_item = ArchivedListItem(text=it.text,
+                                list_item=it,
+                                archived_list=archived_list,
+                                done=it.done,
+                                date=today,
+                                item_date=it.date)
+    new_item.put()
+
+    if it.done:
+      logging.info('Marking item done for item[%s] in list[%s]', it.text, lst.name)
+      # If this item is done remove it from the list.
+      it.delete()
+    else:
+      new_item.put()
+  lst.save()
+
+
 def ArchiveUser(user):
   logging.info('Archiving user[%s]', user)
-  
-  today = datetime.now().date()
       
   # Add the new ones.
   lists = db.GqlQuery('SELECT * FROM List WHERE author = :1 ORDER BY name', user)
   for lst in lists:
     logging.info('Looking at list for list with name[%s] and key[%s]', lst.name, lst.key())
-    
-    # Get or create a new ArchivedList
-    archived_lists = db.GqlQuery(
-      'SELECT * FROM ArchivedList WHERE archived_list = :1 AND date = :2', 
-      lst, today)
-    if archived_lists and any(archived_lists):
-      logging.info('Using existing archived list for list with name[%s] and key[%s]',
-                   lst.name, lst.key())
-      archived_list = archived_lists[0]
-    else:
-      logging.info('Creating a new archived list for list with name[%s] and key[%s]',
-                   lst.name, lst.key())
-      archived_list = ArchivedList(author=lst.author,
-                                   archived_list=lst,
-                                   name=lst.name,
-                                   date=today,
-                                   list_date=lst.date)
-      archived_list.put()
-    items = db.GqlQuery('SELECT * FROM ListItem WHERE list = :1', lst)
-    for it in items:
-      # Delete all the existing archived items for this item.
-      archived_list_items = db.GqlQuery(
-        ('SELECT * FROM ArchivedListItem WHERE list_item = :1 AND '
-         'archived_list = :2 AND date = :3'), 
-        it, archived_list, today)
-      if archived_list_items and any(archived_list_items):
-        for archived_list_item in archived_list_items:
-          logging.info('Found an item already key[%s] text[%s], will delete it',
-                       it.key(), it.text)
-          archived_list_item.delete()
-      new_item = ArchivedListItem(text=it.text,
-                                  list_item=it,
-                                  archived_list=archived_list,
-                                  done=it.done,
-                                  date=today,
-                                  item_date=it.date)
-      new_item.put()
-
-      if it.done:
-        logging.info('Marking item done for item[%s] in list[%s]', it.text, lst.name)
-        # If this item is done remove it from the list.
-        it.delete()
-      else:
-        new_item.put()
-    lst.save()
+    ArchiveList(lst)
 
 # ----------------------------------------------------------------------
 # Handlers
@@ -137,6 +140,12 @@ class ArchiveAll(webapp.RequestHandler):
     }
 
     RenderTemplate(self.response, 'archiveall', template_values)
+
+class ArchiveListHandler(webapp.RequestHandler):
+  def post(self):  
+    list = db.get(self.request.get('key'))
+    ArchiveList(list)
+    self.response.out.write('OK')
 
 class Archive(webapp.RequestHandler):
   def post(self):
@@ -344,6 +353,7 @@ app = webapp.WSGIApplication(
    ('/deletelistitem', DeleteListItem),
    ('/deletelist', DeleteList),
    ('/archive', Archive),
+   ('/archivelist', ArchiveListHandler),
    ('/history', History),
    ('/newlist', NewList),
    ('/newlistitem', NewListItem)

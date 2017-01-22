@@ -20,6 +20,10 @@ function deleteList(listKey, name) {
   }
 }
 
+function archiveList(listKey) {
+  post('/archivelist', {key: listKey});
+}
+
 function deleteItem(itemKey) {
   post('/deletelistitem', {key: itemKey});
 }

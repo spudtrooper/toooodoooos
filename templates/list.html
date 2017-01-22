@@ -55,9 +55,13 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 </div>
 
 <div class="etc-buttons">
-  <button type="submit" class="btn btn-danger" 
-          onclick="deleteList('{{ list.key }}', '{{ list.name }}')" >
-    Delete list
-  </button>
+    <button type="submit" class="btn btn-warning" 
+            onclick="archiveList('{{ list.key }}')" >
+      Archive list
+    </button>
+    <button type="submit" class="btn btn-danger" 
+            onclick="deleteList('{{ list.key }}', '{{ list.name }}')" >
+      Delete list
+    </button>
 </div>
 {% endblock %}
