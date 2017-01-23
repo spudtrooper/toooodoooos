@@ -17,27 +17,7 @@ All
   <ul class="list-group">
     {% for s in list_and_items %}
     <div class="list-group">
-      <a class="list-name list-group-item list-group-item-action justify-content-between" 
-         href="/list?key={{ s.key }}">{{ s.name|safe }}
-        {% if s.num_p0 > 0 %}
-        <span class="label label-danger">{{ s.num_p0 }}</span>
-        {% endif %}
-        {% if s.num_p1 > 0 %}
-        <span class="label label-warning">{{ s.num_p1 }}</span>
-        {% endif %}
-        {% if s.num_p2 > 0 %}
-        <span class="label label-info">{{ s.num_p2 }}</span>
-        {% endif %}
-        {% if s.num_p3 > 0 %}
-        <span class="label label-success">{{ s.num_p3 }}</span>
-        {% endif %}
-        {% if s.num_p4 > 0 %}
-        <span class="label label-primary">{{ s.num_p4 }}</span>
-        {% endif %}
-        {% if s.num_open > 0 %}
-        <span class="badge badge-default badge-pill">{{ s.num_open }}</span>
-        {% endif %}
-      </a>
+      {% include "_list_list_item_group.html" %}
       <div class="list-group">
         {% for item in s.open_items %}
         <a class="list-group-item list-group-item-action"
