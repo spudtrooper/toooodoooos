@@ -64,13 +64,17 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 
 
 <div class="block etc-buttons">
-    <button type="submit" class="btn btn-warning" 
-            onclick="archiveList('{{ list.key }}')" >
-      Archive list
-    </button>
-    <button type="submit" class="btn btn-danger" 
-            onclick="deleteList('{{ list.key }}', '{{ list.name }}')" >
-      Delete list
-    </button>
+  <button type="submit" class="btn btn-warning" 
+          onclick="archiveList('{{ list.key }}')" >
+    Archive
+  </button>
+  <button type="submit" class="btn btn-success" 
+          onclick="emailList('{{ list.key }}')" >
+    Email
+  </button>
+  <button type="submit" class="btn btn-danger" 
+          onclick="deleteList('{{ list.key }}', '{{ list.name }}')" >
+    Delete
+  </button>
 </div>
 {% endblock %}

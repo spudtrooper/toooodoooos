@@ -16,8 +16,16 @@
     </head>
     <body>
       <div class="container-fluid main-content">
-      <h1>{% block title %}{% endblock %}</h1>
-      {% block body %}{% endblock %}
+        <div class="success-alert-container alert alert-success" role="alert" 
+             style="display:none"></div>
+        <div class="info-alert-container alert alert-info" role="alert" 
+             style="display:none"></div>
+        <div class="warning-alert-container alert alert-warning" role="alert" 
+             style="display:none"></div>
+        <div class="danger-alert-container alert alert-danger" role="alert" 
+             style="display:none"></div>
+        <h1>{% block title %}{% endblock %}</h1>
+        {% block body %}{% endblock %}
       </div>
   </body>
 </html>

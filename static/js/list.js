@@ -9,6 +9,24 @@ function archiveList(listKey) {
   post('/archivelist', {key: listKey});
 }
 
+function emailList(listKey) {
+  var recipientAddress = prompt('Recipient\'s address:')
+  if (!recipientAddress) {
+    warn('No recipient address');
+    return;
+  }
+  postWithCallback(
+    '/emaillist', 
+    function(str) {
+      if (str == 'OK') {
+        success('Sent to: ' + recipientAddress);
+      } else {
+        warn('Couldn\'t send to: ' + recipientAddress);
+      }
+    },
+    {key: listKey, recipient_address: recipientAddress});
+}
+
 function deleteItem(itemKey) {
   post('/deletelistitem', {key: itemKey});
 }

@@ -1,6 +1,7 @@
 import helpers
 import logging
 import os
+from google.appengine.api import mail
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -47,6 +48,7 @@ class ArchivedListItem(db.Model):
 # Utilities
 # ----------------------------------------------------------------------
 
+_SENDER_EMAIL = 'list@toooodoooos.appspotmail.com'
 
 def RenderTemplate(response, name, template_values):
   logging.info('Rendering template[%s] with values[%s]', name, template_values)
@@ -110,6 +112,36 @@ def ArchiveUser(user):
   for lst in lists:
     logging.info('Looking at list for list with name[%s] and key[%s]', lst.name, lst.key())
     ArchiveList(lst)
+
+def CreateEmailContent(list):
+    open_items = db.GqlQuery(
+      'SELECT * FROM ListItem WHERE list = :1 AND done = false', list)
+    done_items = db.GqlQuery(
+      'SELECT * FROM ListItem WHERE list = :1 AND done = true', list)
+
+    lines = []
+    def Output(s):
+      lines.append(str(s))
+
+    open_items = [it for it in open_items]
+    done_items = [it for it in done_items]
+
+    Output('List: %s' % (list.name))
+    Output('\n')
+    if any(open_items):
+      Output('Open (%d):' % len(open_items))
+      for it in open_items:
+        Output(' - %s' % (it.text))
+    else:
+      Output('No open items')
+    Output('\n')
+    if any(done_items):
+      Output('\nDone (%d):' % len(done_items))
+      for it in done_items:
+        Output(' - %s' % (it.text))
+    else:
+      Output('No done items')
+    return '\n'.join(lines)
 
 # ----------------------------------------------------------------------
 # Handlers
@@ -325,6 +357,22 @@ class ListPageHandler(webapp.RequestHandler):
     }
     RenderTemplate(self.response, 'list', template_values)
 
+class EmailListHandler(webapp.RequestHandler):
+  def post(self):
+    user = users.get_current_user()
+    if not user:
+      return
+    list = db.get(self.request.get('key'))
+    recipient_address = self.request.get('recipient_address')
+    body = CreateEmailContent(list)
+    subject = 'A list from %s: %s' % (user.nickname(), list.name)
+    logging.info('Emailing to recipient_address[%s] body[%s]', recipient_address, body)
+    mail.send_mail(sender=_SENDER_EMAIL,
+                   to=recipient_address,
+                   subject=subject,
+                   body=body)
+    self.response.out.write('OK')
+
 class NewListItemHandler(webapp.RequestHandler):
   def post(self):
     list = db.get(self.request.get('list_key'))
@@ -442,7 +490,8 @@ app = webapp.WSGIApplication(
    ('/archivelist', ArchiveListHandler),
    ('/history', HistoryHandler),
    ('/newlist', NewListHandler),
-   ('/newlistitem', NewListItemHandler)
+   ('/newlistitem', NewListItemHandler),
+   ('/emaillist', EmailListHandler)
  ], debug=True)
 
 cron = webapp.WSGIApplication(
