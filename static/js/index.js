@@ -14,3 +14,10 @@ function addNewList() {
 function deleteList(listKey) {
   post('/deletelist', {key: listKey});
 }
+
+$(document).ready(function() {
+  $('#add-form').submit(function(e){
+    e.preventDefault();
+    addNewList();
+  });
+});

@@ -51,4 +51,9 @@ function addNewItem(listKey) {
 
 $(document).ready(function() {
   $('.selectpicker').selectpicker();
+  $('#add-form').submit(function(e){
+    e.preventDefault();
+    var listKey = $('#add-form').attr('data-list-key');
+    addNewItem(listKey);
+  });
 });

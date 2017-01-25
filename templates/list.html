@@ -31,23 +31,25 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 </div>
 {% endif %}
 
-<div class="block input-group">
-  <input type="text" class="form-control" placeholder="Item name"
-         id="text_{{ list.key}}">
-  <div class="input-group-btn">
-    <button type="button" class="btn btn-success"
-            onclick="addNewItem('{{ list.key }}')" >
-      Add
-    </button>
+<form id="add-form" data-list-key="{{ list.key }}">
+  <div class="block input-group">
+    <input type="text" class="form-control" placeholder="Item name"
+           id="text_{{ list.key}}">
+    <div class="input-group-btn">
+      <button type="button" class="btn btn-success"
+              onclick="addNewItem('{{ list.key }}')" >
+        Add
+      </button>
+    </div>
+    <select id="priority_{{ list.key}}" class="selectpicker">
+      <option>P0</option>
+      <option>P1</option>
+      <option selected>P2</option>
+      <option>P3</option>
+      <option>P4</option>
+    </select>
   </div>
-  <select id="priority_{{ list.key}}" class="selectpicker">
-    <option>P0</option>
-    <option>P1</option>
-    <option selected>P2</option>
-    <option>P3</option>
-    <option>P4</option>
-  </select>
-</div>
+</form>
 
 {% if num_done_items > 0 %}
 <h2>Done ({{ num_done_items }})</h2>

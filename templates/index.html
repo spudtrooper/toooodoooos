@@ -14,16 +14,18 @@ Lists
 {% endif %}
 
 
-<div class="block input-group">
-  <input type="text" class="form-control" 
-         placeholder="List name"
-         id="new-list-name-text">
-  <div class="input-group-btn">
-    <button type="button" class="btn btn-success" onclick="addNewList()">
-      Add list
-    </button>
+<form id="add-form" data-list-key="{{ list.key }}">
+  <div class="block input-group">
+    <input type="text" class="form-control" 
+           placeholder="List name"
+           id="new-list-name-text">
+    <div class="input-group-btn">
+      <button type="button" class="btn btn-success" onclick="addNewList()">
+        Add list
+      </button>
+    </div>
   </div>
-</div>
+</form>
 
 <div class="block list-group">
   {% for s in lists %}
