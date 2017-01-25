@@ -29,6 +29,7 @@ List: <span class="list-title">{{ list.name|escape }}</span>
   </a>
   {% endfor %}
 </div>
+{% endif %}
 
 <div class="block input-group">
   <input type="text" class="form-control" placeholder="Item name"
@@ -47,7 +48,6 @@ List: <span class="list-title">{{ list.name|escape }}</span>
     <option>P4</option>
   </select>
 </div>
-{% endif %}
 
 {% if num_done_items > 0 %}
 <h2>Done ({{ num_done_items }})</h2>
