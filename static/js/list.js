@@ -43,7 +43,7 @@ function addNewItem(listKey) {
   }
   var priority = priorityStringToInt($('#priority_' + listKey).val());
 
-  // Spectutively add the new item.
+  // Speculatively add the new item.
   $('#text_' + listKey).val('');
   updateNumItems(true, 1);
   

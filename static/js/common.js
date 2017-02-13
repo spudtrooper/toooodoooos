@@ -107,15 +107,20 @@ function updateNumItems(isDone, delta) {
 }
 
 function markItem_(key, isDone, el) {
-  $(el).remove();
 
-  // Spectutively add the new item.
+
+  // Speculatively add the new item.
+  $(el).remove();
+  if (isDone) {
+    $(el).addClass('done');
+    $('#done-items').append($(el));
+  } else {
+    $(el).removeClass('done');
+    $('#open-items').append($(el));
+  }
   updateNumItems(true,  isDone ? +1 : -1);
   updateNumItems(false, isDone ? -1 : +1);
 
-  var onSuccess = function(obj) {
-    $(isDone ? '#done-items' : '#open-items').append($(obj.body));
-  }
   var onFailure = function(obj) {
     // If the request fails, remove the item.
     $((isDone ? '#done' : '#open') + '-item-' + key).remove();
@@ -123,7 +128,7 @@ function markItem_(key, isDone, el) {
     updateNumItems(true,  isDone ? -1 : +1);
     updateNumItems(false, isDone ? +1 : -1);
   };
-  postWithCallbacks('/checklistitem', onSuccess, onFailure, {
+  postWithCallbacks('/checklistitem', undefined /* opt_onSuccess */, onFailure, {
     key: key,
     done: String(isDone)
   });
