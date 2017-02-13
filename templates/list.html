@@ -18,14 +18,18 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 <h2>You got nothing</h2>
 {% endif %}
 
-{% if num_open_items > 0 %}
-<h2>Open (<span id="num-open-items">{{ num_open_items }}</span>)</h2>
-<div class="block list-group" id="open-items">
-  {% for item in open_items %}
-    {% include "_list_open_item.html" %}
-  {% endfor %}
-</div>
+<div id="open-items-wrapper"
+{% if num_open_items == 0 %}
+  style="display:none"
 {% endif %}
+>
+  <h2>Open (<span id="num-open-items">{{ num_open_items }}</span>)</h2>
+  <div class="block list-group" id="open-items">
+    {% for item in open_items %}
+    {% include "_list_open_item.html" %}
+    {% endfor %}
+  </div>
+</div>
 
 <form id="add-form" data-list-key="{{ list.key }}">
   <div class="block input-group">
@@ -47,14 +51,18 @@ List: <span class="list-title">{{ list.name|escape }}</span>
   </div>
 </form>
 
-{% if num_done_items > 0 %}
-<h2>Done (<span id="num-done-items">{{ num_done_items }}</span>)</h2>
-<div class="block list-group" id="done-items">
-  {% for item in done_items %}
-    {% include "_list_done_item.html" %}
-  {% endfor %}
-</div>
+<div id="done-items-wrapper"
+{% if num_done_items == 0 %}
+  style="display:none"
 {% endif %}
+>
+  <h2>Done (<span id="num-done-items">{{ num_done_items }}</span>)</h2>
+  <div class="block list-group" id="done-items">
+    {% for item in done_items %}
+    {% include "_list_done_item.html" %}
+    {% endfor %}
+  </div>
+</div>
 
 
 <div class="block etc-buttons">

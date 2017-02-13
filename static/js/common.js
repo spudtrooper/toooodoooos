@@ -103,23 +103,43 @@ function markItemOpen(key, el) {
 function updateNumItems(isDone, delta) {
   var id = isDone ? '#num-done-items' : '#num-open-items';
   var cur = parseInt($(id).text());
-  $(id).text(cur + delta);
+  var newVal = cur + delta;
+  if (isDone) {
+    if (newVal == 0) {
+      $('#done-items-wrapper').hide();
+    } else {
+      $('#done-items-wrapper').show();
+    }
+  } else {
+    if (newVal == 0) {
+      $('#open-items-wrapper').hide();
+    } else {
+      $('#open-items-wrapper').show();
+    }
+  }
+  $(id).text(newVal);
 }
 
 function markItem_(key, isDone, el) {
-
-
   // Speculatively add the new item.
+  updateNumItems(true,  isDone ? +1 : -1);
+  updateNumItems(false, isDone ? -1 : +1);
   $(el).remove();
+  $(el).unbind('click');
+  $(el).attr('onclick', '');
   if (isDone) {
     $(el).addClass('done');
     $('#done-items').append($(el));
+    $(el).click(function() {
+      return markItemOpen(key, this);
+    });
   } else {
     $(el).removeClass('done');
     $('#open-items').append($(el));
+    $(el).click(function() {
+      return markItemDone(key, this);
+    });
   }
-  updateNumItems(true,  isDone ? +1 : -1);
-  updateNumItems(false, isDone ? -1 : +1);
 
   var onFailure = function(obj) {
     // If the request fails, remove the item.
