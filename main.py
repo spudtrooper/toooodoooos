@@ -1,4 +1,5 @@
 import helpers
+import json
 import logging
 import os
 from google.appengine.api import mail
@@ -54,6 +55,20 @@ def RenderTemplate(response, name, template_values):
   logging.info('Rendering template[%s] with values[%s]', name, template_values)
   path = os.path.join(os.path.dirname(__file__), 'templates/%s.html' % name)
   response.out.write(template.render(path, template_values))
+
+def RenderTemplateWithOK(response, name, template_values=None):
+  logging.info('Rendering with OK template[%s] with values[%s]', 
+               name, template_values)
+  if not template_values:
+    template_values = {}
+  path = os.path.join(os.path.dirname(__file__), 'templates/%s.html' % name)
+  body = template.render(path, template_values)
+  data = {
+    'status': 'OK',
+    'body': body
+  }
+  json_data = json.dumps(data)
+  response.out.write(json_data)
 
 def ArchiveList(lst):
   logging.info('Archiving list[%s]', lst)
@@ -386,14 +401,18 @@ class NewListItemHandler(webapp.RequestHandler):
                  item, text, priority)
     item.put()
     list.save()
-    self.response.out.write('OK')
+    template_values = {
+      'item': item
+    }
+    RenderTemplateWithOK(self.response, '_list_open_item', template_values)
 
 class CheckListItemHandler(webapp.RequestHandler):
   def post(self):
     item = db.get(self.request.get('key'))
     list = db.get(item.list.key())
     logging.info('Have list[%s]',  list)
-    if (self.request.get('done') == 'true'):
+    done = self.request.get('done') == 'true'
+    if done:
       item.done = True
     else:
       item.done = False
@@ -401,7 +420,12 @@ class CheckListItemHandler(webapp.RequestHandler):
     item.date = datetime.now()
     item.put()
 
-    self.response.out.write('OK')
+    template_values = {
+      'item': item
+    }
+    RenderTemplateWithOK(self.response, 
+                         '_list_done_item' if done else '_list_open_item', 
+                         template_values)
 
 class DeleteListItemHandler(webapp.RequestHandler):
   def post(self):

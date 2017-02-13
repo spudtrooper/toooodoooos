@@ -51,6 +51,37 @@ function postWithCallback(url, callback, opt_data, opt_timeout) {
   requestWithCallback(url, 'POST', callback, opt_data, opt_timeout);
 }
 
+/**
+ * Creates a callback that consumes a JSON string with a 'status'
+ * field and calls {@code onSuccess} when status == 'OK', otherwise
+ * calls {@code opt_onFailure} if this function is defined.
+ * @param {function(!Object)=} opt_onSuccess
+ * @param {function(!Object)=} opt_onFailure
+ * @return {function(string)}
+ */
+function createCallbacksFromCallbacks(opt_onSuccess, opt_onFailure) {
+  var callback = function(str) {
+    var obj = JSON.parse(str);
+    console.log('Response: ' + str);
+    if (obj.status == 'OK') {
+      if (opt_onSuccess) {
+        opt_onSuccess.call(null, obj);
+      }
+    } else {
+      if (opt_onFailure) {
+        opt_onFailure.call(null, obj);
+      }
+    }
+  };
+  return callback;
+}
+
+function postWithCallbacks(url, opt_onSuccess, opt_onFailure, opt_data, opt_timeout) {
+  requestWithCallback(url, 'POST', 
+                      createCallbacksFromCallbacks(opt_onSuccess, opt_onFailure), 
+                      opt_data, opt_timeout);
+}
+
 function openSpecialLink(e) {
   var link = $(this).attr('data-link');
   window.open(link, '_');
@@ -61,19 +92,42 @@ function bindFakeLinks() {
   $('.fake-link').click(openSpecialLink);
 }
 
-function markItemDone(key) {
-  markItem_(key, 'true');
+function markItemDone(key, el) {
+  return markItem_(key, true, el);
 }
 
-function markItemOpen(key) {
-  markItem_(key, 'false');
+function markItemOpen(key, el) {
+  return markItem_(key, false, el);
 }
 
-function markItem_(key, done) {
-  post('/checklistitem', {
+function updateNumItems(isDone, delta) {
+  var id = isDone ? '#num-done-items' : '#num-open-items';
+  var cur = parseInt($(id).text());
+  $(id).text(cur + delta);
+}
+
+function markItem_(key, isDone, el) {
+  $(el).remove();
+
+  // Spectutively add the new item.
+  updateNumItems(true,  isDone ? +1 : -1);
+  updateNumItems(false, isDone ? -1 : +1);
+
+  var onSuccess = function(obj) {
+    $(isDone ? '#done-items' : '#open-items').append($(obj.body));
+  }
+  var onFailure = function(obj) {
+    // If the request fails, remove the item.
+    $((isDone ? '#done' : '#open') + '-item-' + key).remove();
+    $(isDone ? '#open-items' : '#done-items').append($(el));
+    updateNumItems(true,  isDone ? -1 : +1);
+    updateNumItems(false, isDone ? +1 : -1);
+  };
+  postWithCallbacks('/checklistitem', onSuccess, onFailure, {
     key: key,
-    done: done
+    done: String(isDone)
   });
+  return false;
 }
 
 function success(msg) {

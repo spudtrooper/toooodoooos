@@ -32,7 +32,7 @@ function deleteItem(itemKey) {
 }
 
 function priorityStringToInt(s) {
-  return parseInt(s.replace(/^P/, ''));
+  return parseInt(s.replace(/^P/, '') );
 }
 
 function addNewItem(listKey) {
@@ -42,7 +42,20 @@ function addNewItem(listKey) {
     return;
   }
   var priority = priorityStringToInt($('#priority_' + listKey).val());
-  post('/newlistitem', {
+
+  // Spectutively add the new item.
+  $('#text_' + listKey).val('');
+  updateNumItems(true, 1);
+  
+  var onSuccess = function(obj) {
+    $('#open-items').append($(obj.body));
+  }
+  var onFailure = function(obj) {
+    // If the request fails, remove the item.
+    $('#_item-' + listKey).remove();
+    updateNumItems(true, -1);
+  };
+  postWithCallbacks('/newlistitem', onSuccess, onFailure, {
     list_key: listKey,
     text: text,
     priority: priority

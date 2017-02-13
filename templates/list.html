@@ -19,14 +19,10 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 {% endif %}
 
 {% if num_open_items > 0 %}
-<h2>Open ({{ num_open_items }})</h2>
-<div class="block list-group">
+<h2>Open (<span id="num-open-items">{{ num_open_items }}</span>)</h2>
+<div class="block list-group" id="open-items">
   {% for item in open_items %}
-  <a class="list-group-item list-group-item-action"
-     href="#"
-     onclick="markItemDone('{{ item.key }}')">
-    {% include "_item.html" %}
-  </a>
+    {% include "_list_open_item.html" %}
   {% endfor %}
 </div>
 {% endif %}
@@ -52,14 +48,10 @@ List: <span class="list-title">{{ list.name|escape }}</span>
 </form>
 
 {% if num_done_items > 0 %}
-<h2>Done ({{ num_done_items }})</h2>
-<div class="block list-group">
+<h2>Done (<span id="num-done-items">{{ num_done_items }}</span>)</h2>
+<div class="block list-group" id="done-items">
   {% for item in done_items %}
-  <a class="list-group-item list-group-item-action done"
-     href="#"
-     onclick="markItemOpen('{{ item.key }}')">
-    {% include "_item.html" %}
-  </a>
+    {% include "_list_done_item.html" %}
   {% endfor %}
 </div>
 {% endif %}
