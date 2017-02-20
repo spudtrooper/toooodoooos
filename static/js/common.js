@@ -129,24 +129,28 @@ function markItem_(key, isDone, el) {
   $(el).attr('onclick', '');
   if (isDone) {
     $(el).addClass('done');
+    $(el).removeClass('open');
     $('#done-items').append($(el));
     $(el).click(function() {
       return markItemOpen(key, this);
     });
   } else {
     $(el).removeClass('done');
+    $(el).addClass('open');
     $('#open-items').append($(el));
     $(el).click(function() {
       return markItemDone(key, this);
     });
   }
 
+  sortAllItems();
   var onFailure = function(obj) {
     // If the request fails, remove the item.
     $((isDone ? '#done' : '#open') + '-item-' + key).remove();
     $(isDone ? '#open-items' : '#done-items').append($(el));
     updateNumItems(true,  isDone ? -1 : +1);
     updateNumItems(false, isDone ? +1 : -1);
+    sortAllItems();
   };
   postWithCallbacks('/checklistitem', undefined /* opt_onSuccess */, onFailure, {
     key: key,
@@ -179,3 +183,37 @@ function showMessage_(msg, selector) {
   }, _ALERT_TIMEOUT_MILLIS);
 }
 
+/** @param {string} type 'open' or 'done' */
+function sortItems(type) {
+  var sort = function(a, b) {
+    if (a.priority - b.priority != 0) {
+      return a.priority - b.priority;
+    }
+    if (a.text > b.text) {
+      return 1;
+    }
+    if (b.text > a.text) {
+      return -1;
+    }
+    return 0;
+  }
+  var objs = [];
+  $('.list-group-item.list-group-item-action.' + type).each(function(i, el) {
+    var priority = parseInt($(el).attr('data-priority'));
+    var text = $(el).attr('data-text');
+    var obj = {el: el, priority: priority, text: text};
+    objs.push(obj);
+    el.remove();
+  });
+  objs.sort(sort);
+  var parent = '#' + type + '-items';
+  $(parent).empty();
+  $(objs).each(function(i, obj) {
+    $(parent).append($(obj.el));
+  });
+}
+
+function sortAllItems() {
+  sortItems('open');
+  sortItems('done');
+}

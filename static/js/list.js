@@ -49,11 +49,13 @@ function addNewItem(listKey) {
   
   var onSuccess = function(obj) {
     $('#open-items').append($(obj.body));
+    sortAllItems();
   }
   var onFailure = function(obj) {
     // If the request fails, remove the item.
     $('#_item-' + listKey).remove();
     updateNumItems(true, -1);
+    sortAllItems();
   };
   postWithCallbacks('/newlistitem', onSuccess, onFailure, {
     list_key: listKey,
@@ -69,4 +71,5 @@ $(document).ready(function() {
     var listKey = $('#add-form').attr('data-list-key');
     addNewItem(listKey);
   });
+  sortAllItems();
 });

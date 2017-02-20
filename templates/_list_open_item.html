@@ -1,5 +1,7 @@
-<a class="list-group-item list-group-item-action"
+<a class="list-group-item list-group-item-action open"
    href="#"
+   data-priority="{{ item.priority }}"
+   data-text="{{ item.text|safe }}"
    onclick="return markItemDone('{{ item.key }}', this)"
    id="item_{{ item.key }}">
   {% include "_item.html" %}
