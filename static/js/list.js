@@ -31,17 +31,12 @@ function deleteItem(itemKey) {
   post('/deletelistitem', {key: itemKey});
 }
 
-function priorityStringToInt(s) {
-  return parseInt(s.replace(/^P/, '') );
-}
-
 function addNewItem(listKey) {
   var text = $('#text_' + listKey).val();
   if (!text) {
     alert('No text');
     return;
   }
-  var priority = priorityStringToInt($('#priority_' + listKey).val());
 
   // Speculatively add the new item.
   $('#text_' + listKey).val('');
@@ -60,16 +55,63 @@ function addNewItem(listKey) {
   postWithCallbacks('/newlistitem', onSuccess, onFailure, {
     list_key: listKey,
     text: text,
-    priority: priority
   });
 }
 
+function addEmailReminderOptions() {
+  $('#email-reminder-select').empty();
+  var option = $('<option>').text('Never').val(-1);
+  $('#email-reminder-select').append(option);
+  for (var hr = 0; hr < 24; hr++) {
+    var s = String(hr);
+    if (s.length < 2) {
+      s = '0' + s;
+    }
+    s += ':00';
+    var option = $('<option>').text(s).val(s);
+    $('#email-reminder-select').append(option);
+  }
+}
+
+function updateListSettings() {
+  var val = $('#email-reminder-select').val();
+  if (!val || val == 'Never') {
+    return;
+  }
+  postWithCallback('/updatelistsettings', sucessWithMsg('Updated email time to ' + val), {
+    key: getListKey(),
+    email_reminder_time: val,
+  });
+}
+
+function initListSettings(listKey) {
+  var onSuccess = function(objStr) {
+    var obj = JSON.parse(objStr);
+    var data = obj['data'];
+    var t = data['email_reminder_time'];
+    if (t) {
+      $('#email-reminder-select').val(t);
+      $('.selectpicker').selectpicker('refresh');
+    }
+  };
+  getWithCallback('/listsettings', onSuccess, {
+    key: listKey,
+  });
+  $('#email-reminder-select').change(updateListSettings);
+}
+
+function getListKey() {
+  return $('#add-form').attr('data-list-key');
+}
+
 $(document).ready(function() {
+  var listKey = $('#add-form').attr('data-list-key');
+  addEmailReminderOptions();
   $('.selectpicker').selectpicker();
   $('#add-form').submit(function(e){
     e.preventDefault();
-    var listKey = $('#add-form').attr('data-list-key');
     addNewItem(listKey);
   });
   sortAllItems();
+  initListSettings(listKey);
 });

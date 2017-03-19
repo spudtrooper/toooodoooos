@@ -3,3 +3,6 @@ cron:
 - description: daily archive
   url: /archiveall
   schedule: every 24 hours
+- description: daily email
+  url: /emailall
+  schedule: every 60 minutes

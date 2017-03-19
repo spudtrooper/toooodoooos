@@ -38,7 +38,9 @@ function requestWithCallback(url, method, callback, opt_data, opt_timeout) {
   }).done(function(str) {
     console.log('Have response: ' + str);
     setTimeout(function() {
-      callback.call(null, str);
+      if (callback) {
+        callback.call(null, str);
+      }
     }, opt_timeout || 50);
   });
 }
@@ -181,6 +183,10 @@ function showMessage_(msg, selector) {
   setTimeout(function() {
     $(selector).fadeOut();
   }, _ALERT_TIMEOUT_MILLIS);
+}
+
+function sucessWithMsg(msg) {
+  return success.bind(null, msg);
 }
 
 /** @param {string} type 'open' or 'done' */

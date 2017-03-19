@@ -10,6 +10,8 @@ from google.appengine.ext import db
 from google.appengine.ext.ndb import msgprop
 from google.appengine.ext.webapp import template
 from datetime import datetime
+from datetime import time
+from datetime import timedelta
 from protorpc import messages
 
 # ----------------------------------------------------------------------
@@ -45,10 +47,15 @@ class ArchivedListItem(db.Model):
   item_date = db.DateTimeProperty()
   date = db.DateProperty()
 
+class ListSettings(db.Model):
+  list = db.ReferenceProperty(List)
+  email_reminder_time = db.TimeProperty()
+
 # ----------------------------------------------------------------------
 # Utilities
 # ----------------------------------------------------------------------
 
+_APP_NAME = 'toooodoooos'
 _SENDER_EMAIL = 'list@toooodoooos.appspotmail.com'
 
 def RenderTemplate(response, name, template_values):
@@ -67,7 +74,16 @@ def RenderTemplateWithOK(response, name, template_values=None):
     'status': 'OK',
     'body': body
   }
-  json_data = json.dumps(data)
+  RenderJsonWithOK(response, data)
+#  json_data = json.dumps(data)
+#  response.out.write(json_data)
+
+def RenderJsonWithOK(response, data):
+  body = {
+    'status': 'OK',
+    'data': data
+  }
+  json_data = json.dumps(body)
   response.out.write(json_data)
 
 def ArchiveList(lst):
@@ -187,6 +203,55 @@ class ArchiveAllHandler(webapp.RequestHandler):
     }
 
     RenderTemplate(self.response, 'archiveall', template_values)
+
+class EmailAllHandler(webapp.RequestHandler):
+  def get(self):
+    author_counts = {}
+    list_settingss = db.GqlQuery('SELECT * FROM ListSettings')
+    now_hour = self.request.get('now_hour')
+    if not now_hour:
+      # TODO(jeff): Take into account time zones. Use PST for now.
+      now_hour = (datetime.now()  + timedelta(hours=-7)).time().strftime('%H')
+    # TODO(jeff): Padding the hour, pad it correctly.
+    if len(now_hour) == 1:
+      now_hour = '0' + now_hour
+    author_counts = {}
+    list_settings_count = 0
+    logging.info('now_hour: %s', now_hour)
+    for list_settings in list_settingss:
+      lst = list_settings.list
+      list_settings_count += 1
+      if lst.author not in author_counts:
+        author_counts[lst.author] = 0
+      if list_settings.email_reminder_time:
+        if list_settings.email_reminder_time.strftime('%H') == now_hour:
+          body = CreateEmailContent(lst)
+          subject = '[%s] Reminder for list %s' % (_APP_NAME, lst.name)
+          recipient_address = lst.author.nickname()
+          if '@' not in recipient_address:
+            recipient_address += '@gmail.com'
+          logging.info('Emailing to recipient_address[%s] body[%s]', recipient_address, body)
+          mail.send_mail(sender=_SENDER_EMAIL,
+                         to=recipient_address,
+                         subject=subject,
+                         body=body)
+          cnt = author_counts.get(lst.author, 0)
+          author_counts[lst.author] = cnt + 1
+
+    author_stats = []
+    for author, cnt in author_counts.iteritems():
+      author_stats.append({
+        'nickname': author.nickname(),
+        'count': cnt
+      })
+
+    template_values = {
+      'author_stats': author_stats,
+      'now_hour': now_hour,
+      'list_settings_count': list_settings_count,
+    }
+
+    RenderTemplate(self.response, 'emailall', template_values)
 
 class ArchiveListHandler(webapp.RequestHandler):
   def post(self):  
@@ -388,6 +453,49 @@ class EmailListHandler(webapp.RequestHandler):
                    body=body)
     self.response.out.write('OK')
 
+def GetOrCreateListSettings(request):
+    list_key = request.get('key')
+    list = db.get(list_key)
+    q = db.GqlQuery('SELECT * FROM ListSettings WHERE list = :1 LIMIT 1', list)
+    results = q.fetch(limit=1)
+    logging.info('results=%s %d', results, len(results))
+    if not results or not any(results):
+      list_settings = ListSettings(list=list)
+      list_settings.put()
+    else:
+      list_settings = results[0]
+    return list_settings
+
+class ListSettingsHandler(webapp.RequestHandler):
+  def get(self):
+    user = users.get_current_user()
+    if not user:
+      return
+    list_settings = GetOrCreateListSettings(self.request)
+    logging.info('ListSettings: %s', list_settings)
+    data = {
+      'email_reminder_time': list_settings.email_reminder_time.strftime('%H:%M')
+    }
+    RenderJsonWithOK(self.response, data)
+
+class UpdateListSettingsHandler(webapp.RequestHandler):
+  def post(self):
+    user = users.get_current_user()
+    if not user:
+      return
+    list_settings = GetOrCreateListSettings(self.request)
+    logging.info('ListSettings before: %s', list_settings)
+
+    email_reminder_time = self.request.get('email_reminder_time')
+    if email_reminder_time:
+      new_email_reminder_time = datetime.strptime(email_reminder_time, '%H:%M').time()
+      logging.info('New time: %s', new_email_reminder_time)
+      list_settings.email_reminder_time = new_email_reminder_time
+      list_settings.save()
+      
+    logging.info('ListSettings after: %s', list_settings.email_reminder_time)
+    self.response.out.write('OK')
+
 class NewListItemHandler(webapp.RequestHandler):
   def post(self):
     list = db.get(self.request.get('list_key'))
@@ -515,9 +623,12 @@ app = webapp.WSGIApplication(
    ('/history', HistoryHandler),
    ('/newlist', NewListHandler),
    ('/newlistitem', NewListItemHandler),
-   ('/emaillist', EmailListHandler)
+   ('/emaillist', EmailListHandler),
+   ('/listsettings', ListSettingsHandler),
+   ('/updatelistsettings', UpdateListSettingsHandler),
  ], debug=True)
 
 cron = webapp.WSGIApplication(
-  [('/archiveall', ArchiveAllHandler)
+  [('/archiveall', ArchiveAllHandler),
+   ('/emailall', EmailAllHandler)
  ], debug=True)
