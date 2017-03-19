@@ -474,7 +474,8 @@ class ListSettingsHandler(webapp.RequestHandler):
     list_settings = GetOrCreateListSettings(self.request)
     logging.info('ListSettings: %s', list_settings)
     data = {
-      'email_reminder_time': list_settings.email_reminder_time.strftime('%H:%M')
+      'email_reminder_time': (list_settings.email_reminder_time.strftime('%H:%M') if
+                              list_settings.email_reminder_time else 'never')
     }
     RenderJsonWithOK(self.response, data)
 
@@ -500,7 +501,7 @@ class NewListItemHandler(webapp.RequestHandler):
   def post(self):
     list = db.get(self.request.get('list_key'))
     text = self.request.get('text')
-    priority = int(self.request.get('priority'))
+    priority = (int(self.request.get('priority')) if self.request.get('priority') else 2)
     item = ListItem(text=text,
                     list=list,
                     priority=priority,
