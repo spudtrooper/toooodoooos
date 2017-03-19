@@ -37,6 +37,7 @@ function addNewItem(listKey) {
     alert('No text');
     return;
   }
+  var priority = $('#priority_' + listKey).val();
 
   // Speculatively add the new item.
   $('#text_' + listKey).val('');
@@ -55,6 +56,7 @@ function addNewItem(listKey) {
   postWithCallbacks('/newlistitem', onSuccess, onFailure, {
     list_key: listKey,
     text: text,
+    priority: priority,
   });
 }
 
