@@ -5,4 +5,4 @@ cron:
   schedule: every 24 hours
 - description: daily email
   url: /emailall
-  schedule: every 60 minutes
+  schedule: every 1 hours

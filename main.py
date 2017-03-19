@@ -58,7 +58,9 @@ class ListSettings(db.Model):
 _APP_NAME = 'toooodoooos'
 _SENDER_EMAIL = 'list@toooodoooos.appspotmail.com'
 
-def RenderTemplate(response, name, template_values):
+def RenderTemplate(response, name, template_values=None):
+  if not template_values:
+    template_values = {}
   logging.info('Rendering template[%s] with values[%s]', name, template_values)
   path = os.path.join(os.path.dirname(__file__), 'templates/%s.html' % name)
   response.out.write(template.render(path, template_values))
@@ -75,10 +77,10 @@ def RenderTemplateWithOK(response, name, template_values=None):
     'body': body
   }
   RenderJsonWithOK(response, data)
-#  json_data = json.dumps(data)
-#  response.out.write(json_data)
 
-def RenderJsonWithOK(response, data):
+def RenderJsonWithOK(response, data=None):
+  if not data:
+    data = {}
   body = {
     'status': 'OK',
     'data': data
@@ -257,7 +259,7 @@ class ArchiveListHandler(webapp.RequestHandler):
   def post(self):  
     list = db.get(self.request.get('key'))
     ArchiveList(list)
-    self.response.out.write('OK')
+    RenderJsonWithOK(self.response)
 
 class ArchiveHandler(webapp.RequestHandler):
   def post(self):
@@ -265,7 +267,7 @@ class ArchiveHandler(webapp.RequestHandler):
     if not user:
       return
     ArchiveUser(user)
-    self.response.out.write('OK')
+    RenderJsonWithOK(self.response)
 
 class IndexPageHandler(webapp.RequestHandler):
   def get(self):
@@ -313,7 +315,7 @@ class NewListHandler(webapp.RequestHandler):
     list = List(author=users.get_current_user(),
                 name=name)
     list.put()
-    self.response.out.write('OK')
+    RenderJsonWithOK(self.response)
 
 # Returns an object of the form
 # {
@@ -451,7 +453,7 @@ class EmailListHandler(webapp.RequestHandler):
                    to=recipient_address,
                    subject=subject,
                    body=body)
-    self.response.out.write('OK')
+    RenderJsonWithOK(self.response)
 
 def GetOrCreateListSettings(request):
     list_key = request.get('key')
@@ -475,7 +477,7 @@ class ListSettingsHandler(webapp.RequestHandler):
     logging.info('ListSettings: %s', list_settings)
     data = {
       'email_reminder_time': (list_settings.email_reminder_time.strftime('%H:%M') if
-                              list_settings.email_reminder_time else 'never')
+                              list_settings.email_reminder_time else '-1')
     }
     RenderJsonWithOK(self.response, data)
 
@@ -489,13 +491,16 @@ class UpdateListSettingsHandler(webapp.RequestHandler):
 
     email_reminder_time = self.request.get('email_reminder_time')
     if email_reminder_time:
-      new_email_reminder_time = datetime.strptime(email_reminder_time, '%H:%M').time()
+      if email_reminder_time == '-1':
+        new_email_reminder_time = None
+      else:
+        new_email_reminder_time = datetime.strptime(email_reminder_time, '%H:%M').time()
       logging.info('New time: %s', new_email_reminder_time)
       list_settings.email_reminder_time = new_email_reminder_time
       list_settings.save()
       
     logging.info('ListSettings after: %s', list_settings.email_reminder_time)
-    self.response.out.write('OK')
+    RenderJsonWithOK(self.response)
 
 class NewListItemHandler(webapp.RequestHandler):
   def post(self):
@@ -542,7 +547,7 @@ class DeleteListItemHandler(webapp.RequestHandler):
     list = db.get(item.list)
     logging.info('Deleting %s' % item)
     item.delete()
-    self.response.out.write('OK')
+    RenderJsonWithOK(self.response)
 
 class DeleteListHandler(webapp.RequestHandler):
   def post(self):  
@@ -550,7 +555,11 @@ class DeleteListHandler(webapp.RequestHandler):
     items = db.GqlQuery('SELECT * FROM ListItem WHERE list = :1', list)
     list.delete()
     db.delete(items)
-    self.response.out.write('OK')
+    RenderJsonWithOK(self.response)
+
+class ChangesHandler(webapp.RequestHandler):
+  def get(self):
+    RenderTemplate(self.response, 'changes')
 
 class HistoryHandler(webapp.RequestHandler):
   def get(self):
@@ -622,6 +631,7 @@ app = webapp.WSGIApplication(
    ('/archive', ArchiveHandler),
    ('/archivelist', ArchiveListHandler),
    ('/history', HistoryHandler),
+   ('/changes', ChangesHandler),
    ('/newlist', NewListHandler),
    ('/newlistitem', NewListItemHandler),
    ('/emaillist', EmailListHandler),

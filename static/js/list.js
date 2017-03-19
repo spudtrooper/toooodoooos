@@ -40,7 +40,7 @@ function addNewItem(listKey) {
 
   // Speculatively add the new item.
   $('#text_' + listKey).val('');
-  updateNumItems(true, 1);
+  updateNumItems(false, 1);
   
   var onSuccess = function(obj) {
     $('#open-items').append($(obj.body));
@@ -78,19 +78,17 @@ function updateListSettings() {
   if (!val || val == 'Never') {
     return;
   }
-  postWithCallback('/updatelistsettings', sucessWithMsg('Updated email time to ' + val), {
+  postWithCallback('/updatelistsettings', 
+                   sucessWithMsg('Updated email time to ' + (val == '-1' ? 'Never' : val)), {
     key: getListKey(),
     email_reminder_time: val,
   });
 }
 
 function initListSettings(listKey) {
-  var onSuccess = function(objStr) {
-    var obj = JSON.parse(objStr);
-    var data = obj['data'];
-    var t = data['email_reminder_time'];
-    if (t) {
-      $('#email-reminder-select').val(t);
+  var onSuccess = function(data) {
+    if (data.email_reminder_time) {
+      $('#email-reminder-select').val(data.email_reminder_time);
       $('.selectpicker').selectpicker('refresh');
     }
   };

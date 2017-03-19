@@ -46,11 +46,15 @@ function requestWithCallback(url, method, callback, opt_data, opt_timeout) {
 }
 
 function getWithCallback(url, callback, opt_data, opt_timeout) {
-  requestWithCallback(url, 'GET', callback, opt_data, opt_timeout);
+  requestWithCallback(url, 'GET', 
+                      createCallbacksFromCallbacks(callback, undefined /* opt_onFailure */), 
+                      opt_data, opt_timeout);
 }
 
 function postWithCallback(url, callback, opt_data, opt_timeout) {
-  requestWithCallback(url, 'POST', callback, opt_data, opt_timeout);
+  requestWithCallback(url, 'POST', 
+                      createCallbacksFromCallbacks(callback, undefined /* opt_onFailure */), 
+                      opt_data, opt_timeout);
 }
 
 /**
@@ -67,11 +71,11 @@ function createCallbacksFromCallbacks(opt_onSuccess, opt_onFailure) {
     console.log('Response: ' + str);
     if (obj.status == 'OK') {
       if (opt_onSuccess) {
-        opt_onSuccess.call(null, obj);
+        opt_onSuccess.call(null, obj.data);
       }
     } else {
       if (opt_onFailure) {
-        opt_onFailure.call(null, obj);
+        opt_onFailure.call(null, obj.data);
       }
     }
   };
