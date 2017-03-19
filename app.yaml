@@ -12,5 +12,8 @@ handlers:
 - url: /archiveall
   login: admin
   script: main.cron
+- url: /emailall
+  login: admin
+  script: main.cron
 - url: /.*
   script: main.app
